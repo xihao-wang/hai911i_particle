@@ -1,0 +1,62 @@
+/* Compute Shader for Particle System */
+#version 430
+layout(local_size_x = 256) in;
+
+struct Particle {
+    vec4 pos;
+    vec4 speed;
+    float age;
+    float ageMax;
+    float pad0;
+    float pad1;
+};
+
+layout(std430, binding = 0) buffer Particles {
+    Particle data[];
+};
+
+uniform float dt;
+uniform float gz;
+uniform float timeSeed;
+
+float rand01(float n) {
+    return fract(sin(n) * 43758.5453123);
+}
+
+void main(){
+    uint i = gl_GlobalInvocationID.x;
+    Particle p = data[i];
+
+    p.speed.z += gz * dt;
+    p.pos += p.speed * dt;
+
+    if (p.pos.z < 0.0) {
+        p.speed.z = -0.8 * p.speed.z;
+        p.pos.z   = 0.0;
+    }
+
+    p.age += dt;
+
+    if (p.age >= p.ageMax) {
+        p.pos = vec4(0.0);
+
+        float r0 = rand01(float(i) + timeSeed + 0.1234);
+        float r1 = rand01(float(i) + timeSeed + 123.4567);
+        float r2 = rand01(float(i) + timeSeed + 9876.5432);
+
+        float angle = 6.28318530718 * r0;  // 2*pi * rand
+        float norm  = 0.04 * r1; // 0..0.04
+        float vz    = r2;  // 0..1
+
+        p.speed = vec4(norm * cos(angle),
+                        norm * sin(angle),
+                        vz,0.f);
+
+        p.age = 0.0;
+
+        float r3 = rand01(float(i) + timeSeed + 555.777);
+        p.ageMax = 5.0 + 5.0 * r3;
+    }
+    data[i] = p;
+
+}
