@@ -60,3 +60,13 @@ void main(){
     data[i] = p;
 
 }
+
+/*
+将每个particule在geometry shader上面处理成quad，并且quad的面始终面向camera。这里我将视角放在了particule系统的正下方，从下往上看，quads依然是面向我们。
+
+将texture贴在每个quads上来模拟smoke的效果。
+
+加上物理之后的效果，我们可以看到受重力影响烟雾下降的更加快速。更自然
+
+在compute shader上运行物理，我们在init上初始化N个particules，然后再在compute shader上面计算每一个的运动。
+*/
